@@ -1,14 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateNoticeDto } from './dto/create-notice.dto';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
-
-export class Notice {
-  id: string;
-  title: string;
-  body: string;
-  created_at: Date;
-  updated_at: Date | null;
-}
+import { Notice } from './entity/notice.entity';
 
 @Injectable()
 export class NoticesService {
@@ -30,7 +23,7 @@ export class NoticesService {
     return [...this.notices];
   }
 
-  findOne(id: string): Notice | undefined {
+  findOne(id: string): Notice {
     const notice = this.notices.find((notice) => notice.id === id);
     if (!notice) {
       throw new BadRequestException(`Can't find notice with id: ${id}`);
