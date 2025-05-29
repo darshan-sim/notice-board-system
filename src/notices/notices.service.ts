@@ -1,52 +1,40 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateNoticeDto } from './dto/create-notice.dto';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
-import { Notice } from './entity/notice.entity';
+import { Notice as NoticeEntity } from './entity/notice.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class NoticesService {
-  private notices: Notice[] = [];
+  constructor(
+    @Inject('NOTICE_REPOSITORY')
+    private noticeRepository: Repository<NoticeEntity>,
+  ) {}
 
-  create(createNoticeDto: CreateNoticeDto) {
-    const notice = new Notice();
-    notice.id = new Date().getTime().toString();
-    notice.title = createNoticeDto.title;
-    notice.body = createNoticeDto.body;
-    notice.created_at = new Date();
-    notice.updated_at = null;
-
-    this.notices.push(notice);
-    return notice;
+  async create(createNoticeDto: CreateNoticeDto): Promise<NoticeEntity> {
+    const notice = this.noticeRepository.create(createNoticeDto);
+    return this.noticeRepository.save(notice);
   }
 
-  findAll(): Notice[] {
-    return [...this.notices];
+  async findAll(): Promise<NoticeEntity[]> {
+    return this.noticeRepository.find();
   }
 
-  findOne(id: string): Notice {
-    const notice = this.notices.find((notice) => notice.id === id);
-    if (!notice) {
-      throw new BadRequestException(`Can't find notice with id: ${id}`);
-    }
-    return notice;
+  async findOne(id: number): Promise<NoticeEntity> {
+    return this.noticeRepository.findOneByOrFail({ id });
   }
 
-  update(id: string, updateNoticeDto: UpdateNoticeDto) {
-    const notice = this.notices.find((notice) => notice.id === id);
-    if (!notice) {
-      throw new BadRequestException(`Can't find notice with id: ${id}`);
-    }
-    for (const key of Object.keys(updateNoticeDto)) {
-      notice[key] = updateNoticeDto[key];
-      notice.updated_at = new Date();
-    }
-    return notice;
+  async update(id: number, updateNoticeDto: UpdateNoticeDto) {
+    const noticeToUpdate = await this.findOne(id);
+    const noticeData = this.noticeRepository.merge(
+      noticeToUpdate,
+      updateNoticeDto,
+    );
+    return this.noticeRepository.save(noticeData);
   }
 
-  remove(id: string) {
-    const oldLength = this.notices.length;
-    this.notices = this.notices.filter((notice) => notice.id !== id);
-    const newLength = this.notices.length;
-    return oldLength - newLength;
+  async remove(id: number) {
+    const existingNotice = await this.findOne(id);
+    return await this.noticeRepository.remove(existingNotice);
   }
 }

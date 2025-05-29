@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   Put,
 } from '@nestjs/common';
@@ -13,7 +14,8 @@ import { CreateNoticeDto } from './dto/create-notice.dto';
 import { NoticesService } from './notices.service';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Notice } from './entity/notice.entity';
+import { Notice } from './entity/notice.entity.temp';
+import { Notice as NoticeEntity } from './entity/notice.entity';
 
 @ApiTags('notices')
 @Controller('notices')
@@ -24,8 +26,10 @@ export class NoticesController {
   @ApiOperation({ summary: 'Create notice' })
   @ApiResponse({ status: 402, description: 'The created record', type: Notice })
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createNoticeDto: CreateNoticeDto): Notice {
-    return this.noticesService.create(createNoticeDto);
+  async create(
+    @Body() createNoticeDto: CreateNoticeDto,
+  ): Promise<NoticeEntity> {
+    return await this.noticesService.create(createNoticeDto);
   }
 
   @Get()
@@ -34,8 +38,8 @@ export class NoticesController {
     description: 'The found records',
     type: Notice,
   })
-  findAll(): Notice[] {
-    return this.noticesService.findAll();
+  async findAll(): Promise<NoticeEntity[]> {
+    return await this.noticesService.findAll();
   }
 
   @Get(':id')
@@ -44,8 +48,14 @@ export class NoticesController {
     description: 'The found record',
     type: Notice,
   })
-  findOne(@Param('id') id: string): Notice {
-    return this.noticesService.findOne(id);
+  async findOne(
+    @Param(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+    )
+    id: number,
+  ): Promise<NoticeEntity> {
+    return await this.noticesService.findOne(id);
   }
 
   @Put(':id')
@@ -55,7 +65,14 @@ export class NoticesController {
     description: 'The updated record',
     type: Notice,
   })
-  update(@Param('id') id: string, @Body() updateNoticeDto: UpdateNoticeDto) {
+  update(
+    @Param(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+    )
+    id: number,
+    @Body() updateNoticeDto: UpdateNoticeDto,
+  ) {
     return this.noticesService.update(id, updateNoticeDto);
   }
 
@@ -65,7 +82,13 @@ export class NoticesController {
     status: 204,
   })
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string) {
+  remove(
+    @Param(
+      'id',
+      new ParseIntPipe({ errorHttpStatusCode: HttpStatus.NOT_ACCEPTABLE }),
+    )
+    id: number,
+  ) {
     return this.noticesService.remove(id);
   }
 }
