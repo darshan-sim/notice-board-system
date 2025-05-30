@@ -14,8 +14,7 @@ import { CreateNoticeDto } from './dto/create-notice.dto';
 import { NoticesService } from './notices.service';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Notice } from './entity/notice.entity.temp';
-import { Notice as NoticeEntity } from './entity/notice.entity';
+import { Notice, Notice as NoticeEntity } from './entity/notice.entity';
 
 @ApiTags('notices')
 @Controller('notices')

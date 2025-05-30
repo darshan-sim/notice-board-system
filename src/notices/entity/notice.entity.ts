@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity()
 export class Notice {
@@ -9,14 +15,9 @@ export class Notice {
   @Column({ type: 'text', nullable: false })
   body: string;
 
-  @Column({
-    type: 'timestamp',
-    default: () => 'CURRENT_TIMESTAMP',
-    nullable: false,
-  })
+  @CreateDateColumn()
   created_at: Date;
-  @Column({
-    type: 'timestamp',
-  })
+
+  @UpdateDateColumn()
   updated_at: Date | null;
 }
