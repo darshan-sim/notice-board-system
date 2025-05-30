@@ -10,14 +10,15 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
-  const config = new DocumentBuilder()
+
+  const swaggerConfig = new DocumentBuilder()
     .setTitle('Notice board')
     .setDescription('REST API for managing digital notice board content')
     .setVersion('1.0')
     .addTag('notices')
     .build();
-  const documentFactory = SwaggerModule.createDocument(app, config);
+  const documentFactory = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, documentFactory);
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(parseInt(process.env.PORT || '3000'));
 }
 bootstrap();
