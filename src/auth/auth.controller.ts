@@ -1,8 +1,15 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/sighup.dto';
 import { User } from './entities/user.entity';
 import { SigninDto } from './dto/signin.dto';
+import { RefreshTokenDto } from './dto/refreshToken.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -16,6 +23,14 @@ export class AuthController {
   @Post('signin')
   async signin(@Body() signinData: SigninDto) {
     return this.authService.signin(signinData);
+  }
+
+  @Post('refresh')
+  async refreshToken(
+    @Body()
+    refreshTokenDto: RefreshTokenDto,
+  ) {
+    return this.authService.refreshToken(refreshTokenDto);
   }
 
   // @Get()

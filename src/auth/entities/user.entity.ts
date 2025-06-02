@@ -2,9 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { RefreshToken } from './refresh-token.entity';
 
 export enum ROLE {
   STUDENT = 'STUDENT',
@@ -33,4 +35,9 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date | null;
+
+  @OneToMany(()=> RefreshToken, (refreshToken) => refreshToken.user, {
+    cascade: ['insert', 'recover']
+  })
+  refreshTokens: RefreshToken[]
 }
