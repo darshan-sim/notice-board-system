@@ -9,14 +9,20 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { CreateNoticeDto } from './dto/create-notice.dto';
 import { NoticesService } from './notices.service';
 import { UpdateNoticeDto } from './dto/update-notice.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Notice, Notice as NoticeEntity } from './entity/notice.entity';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { Roles } from 'src/auth/roles.decorator';
+import { ROLE } from 'src/auth/entities/user.entity';
+import { RoleGuard } from 'src/guards/role.guard';
 
 @ApiTags('notices')
+@UseGuards(AuthGuard, RoleGuard)
 @Controller('notices')
 export class NoticesController {
   constructor(private readonly noticesService: NoticesService) {}
@@ -25,6 +31,7 @@ export class NoticesController {
   @ApiOperation({ summary: 'Create notice' })
   @ApiResponse({ status: 402, description: 'The created record', type: Notice })
   @HttpCode(HttpStatus.CREATED)
+  @Roles([ROLE.ADMIN])
   async create(
     @Body() createNoticeDto: CreateNoticeDto,
   ): Promise<NoticeEntity> {
@@ -37,6 +44,7 @@ export class NoticesController {
     description: 'The found records',
     type: Notice,
   })
+  @Roles([ROLE.ADMIN, ROLE.STUDENT])
   async findAll(): Promise<NoticeEntity[]> {
     return await this.noticesService.findAll();
   }
@@ -47,6 +55,7 @@ export class NoticesController {
     description: 'The found record',
     type: Notice,
   })
+  @Roles([ROLE.ADMIN, ROLE.STUDENT])
   async findOne(
     @Param(
       'id',
@@ -64,6 +73,7 @@ export class NoticesController {
     description: 'The updated record',
     type: Notice,
   })
+  @Roles([ROLE.ADMIN])
   update(
     @Param(
       'id',
@@ -81,6 +91,7 @@ export class NoticesController {
     status: 204,
   })
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles([ROLE.ADMIN])
   remove(
     @Param(
       'id',

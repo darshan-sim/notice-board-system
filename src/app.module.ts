@@ -15,7 +15,7 @@ import configuration from './config/configuration';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configuration: ConfigService) => ({
+      useFactory: (configuration: ConfigService) => ({
         secret: configuration.get<string>('jwt.secret'),
       }),
       global: true,

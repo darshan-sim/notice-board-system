@@ -3,20 +3,22 @@ import {
   CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('refresh-tokens')
+@Unique(['user'])
 export class RefreshToken {
   @PrimaryGeneratedColumn()
-  id: number
-  
-  @Column({unique: true})
+  id: number;
+
+  @Column({ unique: true })
   token: string;
 
-  @ManyToOne(() => User, (user) => user.refreshTokens, {
+  @OneToOne(() => User, {
     nullable: false,
     onDelete: 'CASCADE',
   })
@@ -24,7 +26,7 @@ export class RefreshToken {
   user: User;
 
   @Column({ type: 'timestamp' })
-  expiryData: Date;
+  expiryDate: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

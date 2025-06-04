@@ -16,6 +16,7 @@ async function bootstrap() {
     .setDescription('REST API for managing digital notice board content')
     .setVersion('1.0')
     .addTag('notices')
+    .addBearerAuth()
     .build();
   const documentFactory = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, documentFactory);

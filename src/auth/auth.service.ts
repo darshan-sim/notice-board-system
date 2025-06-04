@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { SignupDto } from './dto/sighup.dto';
@@ -11,7 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { SigninDto } from './dto/signin.dto';
 import { JwtService } from '@nestjs/jwt';
 import { RefreshToken } from './entities/refresh-token.entity';
-import { uuid } from 'uuidv4';
+import { v4 as uuidv4 } from 'uuid';
 import { RefreshTokenDto } from './dto/refreshToken.dto';
 
 @Injectable()
@@ -23,7 +24,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signup(signupData: SignupDto): Promise<User> {
+  async signup(signupData: SignupDto): Promise<boolean> {
     const { username, role, password } = signupData;
 
     const usernameInUse = await this.userRepository.findOneBy({ username });
@@ -39,7 +40,11 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    return this.userRepository.save(user);
+    if (await this.userRepository.save(user)) {
+      return true;
+    } else {
+      throw new InternalServerErrorException('Unable to signin user');
+    }
   }
 
   async signin(signinData: SigninDto) {
@@ -62,11 +67,10 @@ export class AuthService {
     const userRefreshToken = await this.refreshTokenRepository.findOne({
       where: {
         token: refreshTokenDto.refreshToken,
-        expiryData: MoreThan(new Date()),
+        expiryDate: MoreThan(new Date()),
         user: {
-          id: refreshTokenDto.userid
-        }
-
+          id: refreshTokenDto.userid,
+        },
       },
       relations: ['user'],
     });
@@ -74,7 +78,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
 
-    await this.refreshTokenRepository.delete(userRefreshToken.id)
+    // await this.refreshTokenRepository.delete(userRefreshToken.id);
     return await this.generateUserTokens(userRefreshToken.user);
   }
 
@@ -83,15 +87,26 @@ export class AuthService {
       { userId: user.id },
       { expiresIn: '1h' },
     );
-    const refreshToken = uuid();
-    const expiryData = new Date();
-    expiryData.setDate(expiryData.getDate() + 3);
+    const refreshToken = uuidv4();
+    const newExpiryDate = new Date();
+    newExpiryDate.setDate(newExpiryDate.getDate() + 3);
 
-    const usersRefreshToken = this.refreshTokenRepository.create({
-      token: refreshToken,
-      user,
-      expiryData,
+    let usersRefreshToken = await this.refreshTokenRepository.findOne({
+      where: { user: { id: user.id } },
     });
+
+    if (usersRefreshToken) {
+      usersRefreshToken.token = refreshToken;
+      usersRefreshToken.expiryDate = newExpiryDate;
+    } else {
+      // await this.refreshTokenRepository.delete({ user: { id: user.id } });
+      usersRefreshToken = this.refreshTokenRepository.create({
+        token: refreshToken,
+        user: user,
+        expiryDate: newExpiryDate,
+      });
+    }
+
     await this.refreshTokenRepository.save(usersRefreshToken);
 
     return {
